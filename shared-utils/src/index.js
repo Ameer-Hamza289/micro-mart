@@ -32,8 +32,12 @@ export const cartService = {
     const currentCart = globalState.cart.value;
     const item = currentCart.find(item => item.id === productId);
     if (item) {
-      item.quantity = quantity;
-      globalState.cart.next([...currentCart]);
+      if (quantity <= 0) {
+        this.removeFromCart(productId);
+      } else {
+        item.quantity = quantity;
+        globalState.cart.next([...currentCart]);
+      }
     }
   },
   
@@ -41,41 +45,158 @@ export const cartService = {
     return globalState.cart.value.reduce((total, item) => {
       return total + (item.price * item.quantity);
     }, 0);
+  },
+
+  clearCart: () => {
+    globalState.cart.next([]);
   }
 };
 
-// Sample products data
+// Enhanced sample products data
 export const sampleProducts = [
-  { id: 1, name: 'Laptop', price: 999.99, image: 'https://via.placeholder.com/300x200', category: 'Electronics' },
-  { id: 2, name: 'Smartphone', price: 599.99, image: 'https://via.placeholder.com/300x200', category: 'Electronics' },
-  { id: 3, name: 'Headphones', price: 199.99, image: 'https://via.placeholder.com/300x200', category: 'Electronics' },
-  { id: 4, name: 'Coffee Maker', price: 89.99, image: 'https://via.placeholder.com/300x200', category: 'Home' },
-  { id: 5, name: 'Running Shoes', price: 129.99, image: 'https://via.placeholder.com/300x200', category: 'Sports' },
-  { id: 6, name: 'Book', price: 19.99, image: 'https://via.placeholder.com/300x200', category: 'Books' },
+  { 
+    id: 1, 
+    name: 'MacBook Pro 16"', 
+    price: 2399.99, 
+    image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=300&fit=crop',
+    category: 'Electronics',
+    description: 'Powerful laptop for professionals'
+  },
+  { 
+    id: 2, 
+    name: 'iPhone 15 Pro', 
+    price: 999.99, 
+    image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500&h=300&fit=crop',
+    category: 'Electronics',
+    description: 'Latest iPhone with advanced features'
+  },
+  { 
+    id: 3, 
+    name: 'Sony WH-1000XM5', 
+    price: 349.99, 
+    image: 'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=500&h=300&fit=crop',
+    category: 'Electronics',
+    description: 'Premium noise-canceling headphones'
+  },
+  { 
+    id: 4, 
+    name: 'Breville Espresso Machine', 
+    price: 799.99, 
+    image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=500&h=300&fit=crop',
+    category: 'Home',
+    description: 'Professional-grade espresso maker'
+  },
+  { 
+    id: 5, 
+    name: 'Nike Air Max 270', 
+    price: 159.99, 
+    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=300&fit=crop',
+    category: 'Sports',
+    description: 'Comfortable running shoes'
+  },
+  { 
+    id: 6, 
+    name: 'Clean Code Book', 
+    price: 29.99, 
+    image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&h=300&fit=crop',
+    category: 'Books',
+    description: 'Essential programming guide'
+  },
+  { 
+    id: 7, 
+    name: 'Samsung 4K Smart TV', 
+    price: 1299.99, 
+    image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=500&h=300&fit=crop',
+    category: 'Electronics',
+    description: '65" Crystal UHD Smart TV'
+  },
+  { 
+    id: 8, 
+    name: 'KitchenAid Stand Mixer', 
+    price: 449.99, 
+    image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500&h=300&fit=crop',
+    category: 'Home',
+    description: 'Professional stand mixer for baking'
+  },
 ];
 
 // Initialize products
 globalState.products.next(sampleProducts);
 
-// User authentication
+// User authentication with demo credentials
 export const authService = {
   login: (email, password) => {
-    // Simulate login
-    const user = { id: 1, email, name: 'John Doe' };
-    globalState.user.next(user);
-    localStorage.setItem('micro-mart-user', JSON.stringify(user));
-    return Promise.resolve(user);
+    return new Promise((resolve, reject) => {
+      // Simulate API call delay
+      setTimeout(() => {
+        // Demo credentials
+        const validCredentials = [
+          { email: 'demo@micromart.com', password: 'demo123', name: 'Demo User' },
+          { email: 'john@example.com', password: 'password123', name: 'John Doe' },
+          { email: 'admin@micromart.com', password: 'admin123', name: 'Admin User' },
+        ];
+
+        const user = validCredentials.find(
+          cred => cred.email === email && cred.password === password
+        );
+
+        if (user) {
+          const userData = { 
+            id: Math.floor(Math.random() * 1000), 
+            email: user.email, 
+            name: user.name 
+          };
+          
+          globalState.user.next(userData);
+          localStorage.setItem('micro-mart-user', JSON.stringify(userData));
+          resolve(userData);
+        } else {
+          reject(new Error('Invalid credentials'));
+        }
+      }, 1000);
+    });
+  },
+  
+  register: (userData) => {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        // For demo, just simulate registration and auto-login
+        const newUser = {
+          id: Math.floor(Math.random() * 1000),
+          email: userData.email,
+          name: userData.name
+        };
+        
+        globalState.user.next(newUser);
+        localStorage.setItem('micro-mart-user', JSON.stringify(newUser));
+        resolve(newUser);
+      }, 1000);
+    });
   },
   
   logout: () => {
     globalState.user.next(null);
     localStorage.removeItem('micro-mart-user');
+    // Optionally clear cart on logout
+    // cartService.clearCart();
   },
   
   checkAuth: () => {
     const user = localStorage.getItem('micro-mart-user');
     if (user) {
-      globalState.user.next(JSON.parse(user));
+      try {
+        const userData = JSON.parse(user);
+        globalState.user.next(userData);
+        return userData;
+      } catch (error) {
+        localStorage.removeItem('micro-mart-user');
+        return null;
+      }
     }
+    return null;
+  },
+
+  getCurrentUser: () => {
+    return globalState.user.value;
   }
 };
