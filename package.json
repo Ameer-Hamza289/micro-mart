@@ -1,0 +1,46 @@
+{
+  "name": "micro-mart",
+  "version": "1.0.0",
+  "description": "A micro-frontend e-commerce application built with Single-SPA and React",
+  "scripts": {
+    "install-all": "npm run install:root && npm run install:shell && npm run install:header && npm run install:catalog && npm run install:details && npm run install:cart && npm run install:auth && npm run install:utils",
+    "install:root": "cd root-config && npm install",
+    "install:shell": "cd shell-app && npm install",
+    "install:header": "cd header-app && npm install",
+    "install:catalog": "cd product-catalog-app && npm install",
+    "install:details": "cd product-details-app && npm install",
+    "install:cart": "cd cart-app && npm install",
+    "install:auth": "cd user-auth-app && npm install",
+    "install:utils": "cd shared-utils && npm install",
+    "start": "concurrently \"npm run start:root\" \"npm run start:shell\" \"npm run start:header\" \"npm run start:catalog\" \"npm run start:details\" \"npm run start:cart\" \"npm run start:auth\" \"npm run start:utils\"",
+    "start:root": "cd root-config && npm start",
+    "start:shell": "cd shell-app && npm start",
+    "start:header": "cd header-app && npm start",
+    "start:catalog": "cd product-catalog-app && npm start",
+    "start:details": "cd product-details-app && npm start",
+    "start:cart": "cd cart-app && npm start",
+    "start:auth": "cd user-auth-app && npm start",
+    "start:utils": "cd shared-utils && npm start",
+    "build": "npm run build:root && npm run build:shell && npm run build:header && npm run build:catalog && npm run build:details && npm run build:cart && npm run build:auth && npm run build:utils",
+    "build:root": "cd root-config && npm run build",
+    "build:shell": "cd shell-app && npm run build",
+    "build:header": "cd header-app && npm run build",
+    "build:catalog": "cd product-catalog-app && npm run build",
+    "build:details": "cd product-details-app && npm run build",
+    "build:cart": "cd cart-app && npm run build",
+    "build:auth": "cd user-auth-app && npm run build",
+    "build:utils": "cd shared-utils && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "micro-frontend",
+    "single-spa",
+    "react",
+    "e-commerce",
+    "micro-mart"
+  ],
+  "author": "Ameer Hamza",
+  "license": "MIT"
+} 
