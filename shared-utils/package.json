@@ -12,7 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "webpack": "^5.99.9",
