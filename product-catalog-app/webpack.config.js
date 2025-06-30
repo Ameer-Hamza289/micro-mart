@@ -1,3 +1,5 @@
+const path = require('path');
+
 module.exports = {
   mode: 'development',
   entry: './src/index.js',
@@ -7,8 +9,14 @@ module.exports = {
   },
   devServer: {
     port: 8082,
+    static: {
+      directory: path.join(__dirname, 'src'),
+    },
     headers: {
       'Access-Control-Allow-Origin': '*',
+    },
+    historyApiFallback: {
+      index: '/standalone.html'
     },
   },
   module: {

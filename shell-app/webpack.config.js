@@ -1,3 +1,5 @@
+const path = require('path');
+
 module.exports = {
   mode: 'development',
   entry: './src/index.js',
@@ -7,19 +9,25 @@ module.exports = {
   },
   devServer: {
     port: 8080,
+    static: {
+      directory: path.join(__dirname, 'src'),
+    },
     headers: {
       'Access-Control-Allow-Origin': '*',
+    },
+    historyApiFallback: {
+      index: '/standalone.html'
     },
   },
   module: {
     rules: [
       {
-        test: /\.jsx?$/,
+        test: /\.(js|jsx)$/,
         exclude: /node_modules/,
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-react'],
+            presets: ['@babel/preset-env', '@babel/preset-react'],
           },
         },
       },
@@ -28,6 +36,9 @@ module.exports = {
         use: ['style-loader', 'css-loader'],
       },
     ],
+  },
+  resolve: {
+    extensions: ['.js', '.jsx'],
   },
   externals: ['react', 'react-dom'],
 };

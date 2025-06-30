@@ -15,11 +15,18 @@ function registerApps() {
     activeWhen: () => true,
   });
 
-  // Register product catalog
+  // Register home page (only for root path)
+  registerApplication({
+    name: '@micro-mart/home-page',
+    app: () => System.import('@micro-mart/home-page'),
+    activeWhen: location => location.pathname === '/',
+  });
+
+  // Register product catalog (only for /products path)
   registerApplication({
     name: '@micro-mart/product-catalog',
     app: () => System.import('@micro-mart/product-catalog'),
-    activeWhen: location => location.pathname === '/' || location.pathname.startsWith('/products'),
+    activeWhen: location => location.pathname.startsWith('/products'),
   });
 
   // Register product details
