@@ -12,4 +12,4 @@ module.exports = {
     },
   },
   externals: ['@micro-mart/shared-utils'],
-};
+}};
