@@ -38,6 +38,13 @@ const ProductCatalog = () => {
   useEffect(() => {
     const initializeServices = async () => {
       try {
+        // Check URL parameters for initial category filter
+        const urlParams = new URLSearchParams(window.location.search);
+        const categoryParam = urlParams.get('category');
+        if (categoryParam) {
+          setSelectedCategory(categoryParam);
+        }
+        
         // Wait a bit for shared-utils to be available
         await new Promise(resolve => setTimeout(resolve, 200));
         
