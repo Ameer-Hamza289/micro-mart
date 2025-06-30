@@ -1,114 +1,274 @@
-let domEl;
-let unsubscribe;
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import singleSpaReact from 'single-spa-react';
+import './styles.css';
 
-export const mount = async (props) => {
-  const { globalState, cartService } = await System.import('@micro-mart/shared-utils');
-  
-  domEl = document.createElement('div');
-  domEl.innerHTML = `
-    <div id="product-catalog">
-      <h2>Products</h2>
-      <div style="margin-bottom: 2rem;">
-        <input type="text" id="search-input" placeholder="Search products..." 
-               style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; width: 300px;">
-        <select id="category-filter" style="padding: 0.5rem; margin-left: 1rem; border: 1px solid #ddd; border-radius: 4px;">
-          <option value="">All Categories</option>
-          <option value="Electronics">Electronics</option>
-          <option value="Home">Home</option>
-          <option value="Sports">Sports</option>
-          <option value="Books">Books</option>
-        </select>
+// Error boundary component
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Product Catalog error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <div>Something went wrong in Product Catalog.</div>;
+    }
+    return this.props.children;
+  }
+}
+
+const ProductCatalog = () => {
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [sortBy, setSortBy] = useState('name');
+  const [isLoading, setIsLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const initializeServices = async () => {
+      try {
+        // Wait a bit for shared-utils to be available
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        const { globalState, cartService } = await System.import('@micro-mart/shared-utils');
+        
+        // Subscribe to products
+        const productsSubscription = globalState.products.subscribe((productsData) => {
+          setProducts(productsData);
+          setFilteredProducts(productsData);
+          
+          // Extract categories
+          const uniqueCategories = [...new Set(productsData.map(p => p.category))];
+          setCategories(uniqueCategories);
+          
+          setIsLoading(false);
+        });
+
+        return () => {
+          productsSubscription.unsubscribe();
+        };
+      } catch (error) {
+        console.error('Error initializing product catalog:', error);
+        setIsLoading(false);
+      }
+    };
+
+    initializeServices();
+  }, []);
+
+  useEffect(() => {
+    let filtered = [...products];
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filter by category
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(product => product.category === selectedCategory);
+    }
+
+    // Sort products
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'price-low':
+          return a.price - b.price;
+        case 'price-high':
+          return b.price - a.price;
+        default:
+          return 0;
+      }
+    });
+
+    setFilteredProducts(filtered);
+  }, [products, searchTerm, selectedCategory, sortBy]);
+
+  const addToCart = async (product) => {
+    try {
+      const { cartService } = await System.import('@micro-mart/shared-utils');
+      cartService.addToCart(product);
+      
+      // Show feedback
+      const button = document.querySelector(`[data-product-id="${product.id}"]`);
+      if (button) {
+        const originalText = button.textContent;
+        button.textContent = 'Added!';
+        button.style.background = '#27ae60';
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.style.background = '';
+        }, 1000);
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+    }
+  };
+
+  const viewProduct = (productId) => {
+    history.pushState(null, null, `/product/${productId}`);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
+  if (isLoading) {
+    return (
+      <div className="product-catalog loading">
+        <div className="loading-spinner">
+          <div className="spinner"></div>
+          <p>Loading products...</p>
+        </div>
       </div>
-      <div id="products-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem;">
+    );
+  }
+
+  return (
+    <div className="product-catalog">
+      <div className="catalog-header">
+        <h2>Product Catalog</h2>
+        <p>Discover our amazing collection of products</p>
+      </div>
+
+      <div className="filters-section">
+        <div className="search-bar">
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+          <span className="search-icon">🔍</span>
+        </div>
+
+        <div className="filters">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="category-filter"
+          >
+            <option value="all">All Categories</option>
+            {categories.map(category => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
+
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="sort-filter"
+          >
+            <option value="name">Sort by Name</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="products-count">
+        Showing {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}
+      </div>
+
+      <div className="products-grid">
+        {filteredProducts.length === 0 ? (
+          <div className="no-products">
+            <h3>No products found</h3>
+            <p>Try adjusting your search or filters</p>
+          </div>
+        ) : (
+          filteredProducts.map(product => (
+            <div key={product.id} className="product-card">
+              <div className="product-image-container">
+                <img 
+                  src={product.image} 
+                  alt={product.name}
+                  className="product-image"
+                  loading="lazy"
+                />
+                <div className="product-overlay">
+                  <button 
+                    onClick={() => viewProduct(product.id)}
+                    className="view-product-btn"
+                  >
+                    View Details
+                  </button>
+                </div>
+              </div>
+              
+              <div className="product-info">
+                <div className="product-category">{product.category}</div>
+                <h3 className="product-name">{product.name}</h3>
+                <div className="product-price">${product.price.toFixed(2)}</div>
+                
+                <button
+                  onClick={() => addToCart(product)}
+                  className="add-to-cart-btn"
+                  data-product-id={product.id}
+                >
+                  Add to Cart
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
-  `;
-  
-  const catalogContainer = document.getElementById('product-catalog-container');
-  if (catalogContainer) {
-    catalogContainer.appendChild(domEl);
-  }
-  
-  let allProducts = [];
-  
-  const renderProducts = (products) => {
-    const grid = document.getElementById('products-grid');
-    if (grid) {
-      grid.innerHTML = products.map(product => `
-        <div style="border: 1px solid #ddd; border-radius: 8px; padding: 1rem; background: white;">
-          <img src="${product.image}" alt="${product.name}" 
-               style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px;">
-          <h3 style="margin: 1rem 0 0.5rem 0;">${product.name}</h3>
-          <p style="color: #666; margin: 0.5rem 0;">${product.category}</p>
-          <p style="font-size: 1.2rem; font-weight: bold; margin: 0.5rem 0;">$${product.price}</p>
-          <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-            <button onclick="addToCart(${product.id})" 
-                    style="flex: 1; background: #3498db; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">
-              Add to Cart
-            </button>
-            <button onclick="viewProduct(${product.id})" 
-                    style="flex: 1; background: #2c3e50; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">
-              View Details
-            </button>
-          </div>
-        </div>
-      `).join('');
-    }
-  };
-  
-  const filterProducts = () => {
-    const searchTerm = document.getElementById('search-input')?.value.toLowerCase() || '';
-    const categoryFilter = document.getElementById('category-filter')?.value || '';
-    
-    let filtered = allProducts.filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm);
-      const matchesCategory = !categoryFilter || product.category === categoryFilter;
-      return matchesSearch && matchesCategory;
-    });
-    
-    renderProducts(filtered);
-  };
-  
-  // Add event listeners
-  const searchInput = document.getElementById('search-input');
-  const categoryFilter = document.getElementById('category-filter');
-  
-  if (searchInput) {
-    searchInput.addEventListener('input', filterProducts);
-  }
-  
-  if (categoryFilter) {
-    categoryFilter.addEventListener('change', filterProducts);
-  }
-  
-  // Global functions
-  window.addToCart = async (productId) => {
-    const product = allProducts.find(p => p.id === productId);
-    if (product) {
-      cartService.addToCart(product);
-      alert(`${product.name} added to cart!`);
-    }
-  };
-  
-  window.viewProduct = (productId) => {
-    window.navigateTo(`/product/${productId}`);
-  };
-  
-  // Subscribe to products
-  unsubscribe = globalState.products.subscribe((products) => {
-    allProducts = products;
-    filterProducts();
-  });
-  
-  return Promise.resolve();
+  );
 };
 
-export const unmount = () => {
-  if (unsubscribe) {
-    unsubscribe();
-  }
-  if (domEl && domEl.parentNode) {
-    domEl.parentNode.removeChild(domEl);
-  }
-  return Promise.resolve();
-};
+const ProductCatalogWithErrorBoundary = () => (
+  <ErrorBoundary>
+    <ProductCatalog />
+  </ErrorBoundary>
+);
+
+const lifecycles = singleSpaReact({
+  React,
+  ReactDOM,
+  rootComponent: ProductCatalogWithErrorBoundary,
+  errorBoundary(err, info, props) {
+    console.error('Product Catalog error boundary:', err, info);
+    return <div>Product Catalog failed to load</div>;
+  },
+  domElementLocation: () => {
+    // Use the container provided by shell app
+    let container = document.getElementById('product-catalog-container');
+    if (!container) {
+      // Fallback: wait for shell to create it
+      const checkForContainer = () => {
+        container = document.getElementById('product-catalog-container');
+        if (container) return container;
+        
+        // If still not found, create it temporarily  
+        container = document.createElement('div');
+        container.id = 'product-catalog-container';
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+          mainContent.appendChild(container);
+        } else {
+          document.body.appendChild(container);
+        }
+        return container;
+      };
+      return checkForContainer();
+    }
+    return container;
+  },
+});
+
+export const { bootstrap, mount, unmount } = lifecycles;
