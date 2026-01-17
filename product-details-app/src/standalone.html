@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details - Micro-Mart</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+        }
+        .standalone-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .standalone-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .standalone-note {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="standalone-container">
+        <div class="standalone-header">
+            <h1>📱 Product Details Micro-Frontend</h1>
+            <p>Running in standalone mode on port 8083</p>
+        </div>
+        
+        <div class="standalone-note">
+            <strong>ℹ️ Standalone Mode:</strong> This is the Product Details micro-frontend running independently. 
+            For the full application experience, visit <a href="http://localhost:9000" target="_blank">http://localhost:9000</a><br>
+            <strong>Tip:</strong> Try visiting /product/1 for a sample product details page.
+        </div>
+        
+        <div id="product-details-container">
+            <!-- Product details component will be mounted here -->
+        </div>
+    </div>
+
+    <script type="systemjs-importmap">
+        {
+            "imports": {
+                "react": "https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js",
+                "react-dom": "https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js",
+                "rxjs": "https://cdn.jsdelivr.net/npm/rxjs@7.8.1/dist/bundles/rxjs.umd.min.js",
+                "@micro-mart/shared-utils": "//localhost:8086/micro-mart-shared-utils.js"
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/systemjs@6.8.3/dist/system.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/systemjs@6.8.3/dist/extras/amd.min.js"></script>
+    
+    <script>
+        System.import('./micro-mart-product-details.js').then(({ mount }) => {
+            mount({
+                domElement: document.getElementById('product-details-container')
+            });
+        }).catch(err => {
+            console.error('Failed to load product details:', err);
+            document.getElementById('product-details-container').innerHTML = 
+                '<div style="padding: 2rem; text-align: center; color: #d32f2f;">Failed to load product details component. Make sure shared-utils is running on port 8086.</div>';
+        });
+    </script>
+</body>
+</html> 

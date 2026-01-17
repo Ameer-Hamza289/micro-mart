@@ -4,11 +4,11 @@ module.exports = {
   mode: 'development',
   entry: './src/index.js',
   output: {
-    filename: 'micro-mart-shell.js',
+    filename: 'micro-mart-home-page.js',
     libraryTarget: 'system',
   },
   devServer: {
-    port: 8080,
+    port: 8087,
     static: {
       directory: path.join(__dirname, 'src'),
     },
@@ -22,12 +22,12 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(js|jsx)$/,
+        test: /\.jsx?$/,
         exclude: /node_modules/,
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-env', '@babel/preset-react'],
+            presets: ['@babel/preset-react'],
           },
         },
       },
@@ -37,8 +37,5 @@ module.exports = {
       },
     ],
   },
-  resolve: {
-    extensions: ['.js', '.jsx'],
-  },
   externals: ['react', 'react-dom'],
-};
+}; 

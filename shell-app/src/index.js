@@ -37,6 +37,7 @@ const Shell = () => {
       <div id="header-container" className="header-container"></div>
       <div className="main-wrapper">
         <main id="main-content" className="main-content">
+          <div id="home-page-container" className="micro-frontend-container"></div>
           <div id="product-catalog-container" className="micro-frontend-container"></div>
           <div id="product-details-container" className="micro-frontend-container"></div>
           <div id="cart-container" className="micro-frontend-container"></div>
